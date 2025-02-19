@@ -49,7 +49,7 @@ const prompt = () => {
                 commands[lowerCmd](args);
             }
         } else {
-            console.log(`'${cmd}' is not recognized as an internal or external command.`);
+            console.log(`'${cmd}'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는\n배치 파일이 아닙니다.`);
         }
         
         prompt();
