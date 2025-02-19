@@ -5,25 +5,38 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-console.log('한글 TE-Dos 0.1.0 - Pre1\n종료를 원할 경우 ctrl+c를 클릭하세요.');
+console.log('한글 TE-DOS 0.1.0-Pre1\nCopyright (C) 2025 KasaneTetto');
 
 const commands = {
     'hello': () => console.log('World!'),
-    'date': () => console.log(new Date().toString()),
-    'echo': (args) => console.log(args.join(' ')),
-    'help': () => console.log('Available commands: hello, date, echo, help, exit, cd'),
+    'echo': (args) => {
+        if (args.length === 1 && (args[0].toLowerCase() === 'off' || args[0].toLowerCase() === 'on')) {
+            echoEnabled = args[0].toLowerCase() === 'on';
+        } else {
+            console.log(args.join(' '));
+        }
+    },
 };
 
-const prompt = () => {
+for (;;) {
     rl.question('C:\\> ', (input) => {
-        const [cmd, ...args] = input.trim().split(/\s+/);
+        const [rawCmd, ...args] = input.trim().split(/\s+/);
+        const cmd = rawCmd.replace(/^@/, '');
+        const suppressOutput = rawCmd.startsWith('@');
+        
+        if (!suppressOutput && echoEnabled) {
+            console.log(`C:\\> ${input}`);
+        }
+        
+        if (cmd.toLowerCase() === 'exit') {
+            rl.close();
+            process.exit(0);
+        }
         if (commands[cmd.toLowerCase()]) {
             commands[cmd.toLowerCase()](args);
         } else {
-            console.log(`'${cmd}' 는 TE-Dos에 내장되어있지 않은 커맨드입니다.`);
+            console.log(`'${cmd}'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는 배치 파일이 아닙니다.`);
         }
-        prompt();
     });
-};
+}
 
-prompt();
