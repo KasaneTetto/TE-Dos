@@ -1,5 +1,6 @@
 import fs from 'fs';
 import readline from 'readline';
+import { spawn } from 'child_process';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -20,6 +21,12 @@ const commands = {
             console.log(args.join(' '));
         }
     },
+    'node': (args) => {
+        const child = spawn('node', args, { stdio: 'inherit' });
+        child.on('exit', () => {
+            prompt();
+        });
+    }
 };
 
 const prompt = () => {
@@ -27,19 +34,42 @@ const prompt = () => {
     rl.question(promptStr, (input) => {
         const [rawCmd, ...args] = input.trim().split(/\s+/);
         const cmd = rawCmd.replace(/^@/, '');
+        const lowerCmd = cmd.toLowerCase();
         
-        if (cmd.toLowerCase() === 'exit') {
+        if (lowerCmd === 'exit') {
             rl.close();
             process.exit(0);
         }
-        if (commands[cmd.toLowerCase()]) {
-            commands[cmd.toLowerCase()](args);
+        
+        if (commands[lowerCmd]) {
+            if (lowerCmd === 'node') {
+                commands[lowerCmd](args);
+                return;
+            } else {
+                commands[lowerCmd](args);
+            }
         } else {
-            console.log(`'${cmd}'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는\n배치 파일이 아닙니다.`);
+            console.log(`'${cmd}' is not recognized as an internal or external command.`);
         }
         
         prompt();
     });
 };
+
+process.on('SIGINT', () => {
+    if (currentChild) {
+        currentChild.kill('SIGINT');
+    } else {
+        rl.question('정말로 종료하시겠습니까? (y/n) ', (answer) => {
+            answer = answer.toLowerCase().trim();
+            if (answer === 'y' || answer === 'yes') {
+                rl.close();
+                process.exit(0);
+            } else {
+                prompt();
+            }
+        });
+    }
+});
 
 prompt();
